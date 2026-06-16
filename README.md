@@ -1,2 +1,2 @@
-# nvim
-my neovim configs
+# configs
+my configs for neovim, wezterm, rmpc and tmux

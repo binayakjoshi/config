@@ -1,0 +1,103 @@
+#![enable(implicit_some)]
+#![enable(unwrap_newtypes)]
+#![enable(unwrap_variant_newtypes)]
+(
+    address: "127.0.0.1:6600",
+    password: None,
+    theme: Some("everforest"),
+    cache_dir: None,
+    on_song_change: None,
+    volume_step: 5,
+    max_fps: 30,
+    scrolloff: 0,
+    wrap_navigation: false,
+    lyrics_dir: "/home/binayak/Music",
+    enable_lyrics_index: true,
+    enable_lyrics_hot_reload: true,
+    enable_mouse: true,
+    enable_config_hot_reload: true,
+    status_update_interval_ms: 1000,
+    rewind_to_start_sec: None,
+    keep_state_on_song_change: true,
+    reflect_changes_to_playlist: false,
+    select_current_song_on_change: false,
+    ignore_leading_the: false,
+    browser_song_sort: [Disc, Track, Artist, Title],
+    directories_sort: SortFormat(
+        group_by_type: true,
+        reverse: false
+    ),
+    album_art: (
+        method: Auto,
+        order: EmbeddedFirst,
+        // Reduced from 1200x1200 to make the art smaller on screen
+        max_size_px: (width: 1200, height: 1200),
+        disabled_protocols: ["http://", "https://"],
+        vertical_align: Center,
+        horizontal_align: Center,
+    ),
+    normal_timeout_ms: 1000,
+    insert_timeout_ms: 1000,
+    search: (
+        case_sensitive: false,
+        ignore_diacritics: false,
+        search_button: false,
+        mode: Contains,
+        tags: [
+            (value: "any",         label: "Any Tag"),
+            (value: "artist",      label: "Artist"),
+            (value: "album",       label: "Album"),
+            (value: "albumartist", label: "Album Artist"),
+            (value: "title",       label: "Title"),
+            (value: "filename",    label: "Filename"),
+            (value: "genre",       label: "Genre"),
+        ],
+    ),
+    artists: (
+        album_display_mode: SplitByDate,
+        album_sort_by: Date,
+        album_date_tags: [Date],
+    ),
+tabs: [
+        (
+            name: "Queue",
+            pane: Split(
+                direction: Horizontal,
+                panes: [
+                    // Left: song list takes 58%
+                    (size: "58%", pane: Pane(Queue)),
+                    // Right: album art + now-playing info stacked vertically
+                    (size: "42%", pane: Split(
+                        direction: Vertical,
+                        panes: [
+                            // Album art fills most of the right column
+                            (size: "85%", pane: Pane(AlbumArt)),
+                            // Bottom strip: playback status line
+                            (size: "15%", pane: Pane(Empty())),
+                        ],
+                    )),
+                ],
+            ),
+        ),
+        (
+            name: "Directories",
+            pane: Pane(Directories),
+        ),
+        (
+            name: "Artists",
+            pane: Pane(Artists),
+        ),
+        (
+            name: "Albums",
+            pane: Pane(Albums),
+        ),
+        (
+            name: "Playlists",
+            pane: Pane(Playlists),
+        ),
+        (
+            name: "Search",
+            pane: Pane(Search),
+        ),
+    ],
+)

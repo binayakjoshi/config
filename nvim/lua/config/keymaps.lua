@@ -55,6 +55,8 @@ map("n", "<leader>x", function()
   require("bufdelete").bufdelete(0, true)
 end, { desc = "Safe Buffer Delete" })
 
+vim.keymap.set("n", "<S-l>", "<cmd>bnext<CR>")
+vim.keymap.set("n", "<S-h>", "<cmd>bprevious<CR>")
 -- NvimTree
 map("n", "<leader>e", ":NvimTreeToggle<CR>")
 map("n", "<leader>f", ":NvimTreeFocus<CR>", { desc = "Focus NvimTree" })

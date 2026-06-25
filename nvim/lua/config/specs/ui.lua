@@ -4,14 +4,43 @@ return {
   -- Dependencies
   { "nvim-lua/plenary.nvim" },
   { "kyazdani42/nvim-web-devicons" },
-
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+    },
+    opts = {
+      options = {
+        separator_style         = "slant",
+        tab_size                = 18,
+        max_name_length         = 20,
+        diagnostics             = "nvim_lsp",
+        diagnostics_indicator   = function(count, level)
+          local icons = { error = " ", warning = " " }
+          return (icons[level] or "") .. count
+        end,
+        show_close_icon         = false,
+        show_buffer_close_icons = false,
+        always_show_bufferline  = true,
+        offsets                 = {
+          {
+            filetype   = "NvimTree",
+            text       = "Explorer",
+            text_align = "center",
+            separator  = true,
+          },
+        },
+      },
+    },
+  },
   -- Colorschemes
   {
     "sainnhe/everforest",
     lazy = false,
     priority = 1000, -- Load first so colorscheme is set before other UI plugins
     config = function()
-      -- globals already set in options.lua
+      vim.g.everforest_background = "hard"
       vim.cmd("colorscheme everforest")
     end,
   },
@@ -29,8 +58,8 @@ return {
     config = function()
       require("lualine").setup({
         options = {
-          theme               = "everforest",
-          section_separators  = "",
+          theme                = "everforest",
+          section_separators   = "",
           component_separators = "",
         },
         sections = {
@@ -52,8 +81,8 @@ return {
             {
               -- Custom diagnostics: show error/warn counts with line numbers
               function()
-                local diags  = vim.diagnostic.get(0)
-                local counts = { E = 0, W = 0, H = 0 }
+                local diags                   = vim.diagnostic.get(0)
+                local counts                  = { E = 0, W = 0, H = 0 }
                 local first_error, first_warn = nil, nil
 
                 for _, d in ipairs(diags) do
@@ -70,10 +99,12 @@ return {
 
                 local out = {}
                 if counts.E > 0 then
-                  table.insert(out, "%#DiagnosticError# E:" .. counts.E .. (first_error and "(L" .. first_error .. ")" or "") .. "%*")
+                  table.insert(out,
+                    "%#DiagnosticError# E:" .. counts.E .. (first_error and "(L" .. first_error .. ")" or "") .. "%*")
                 end
                 if counts.W > 0 then
-                  table.insert(out, "%#DiagnosticWarn# W:" .. counts.W .. (first_warn and "(L" .. first_warn .. ")" or "") .. "%*")
+                  table.insert(out,
+                    "%#DiagnosticWarn# W:" .. counts.W .. (first_warn and "(L" .. first_warn .. ")" or "") .. "%*")
                 end
                 if counts.H > 0 then
                   table.insert(out, "%#DiagnosticHint# H:" .. counts.H .. "%*")
@@ -99,16 +130,16 @@ return {
     "nvim-tree/nvim-tree.lua",
     config = function()
       require("nvim-tree").setup({
-        view    = { width = 30 },
-        filters = {
+        view                = { width = 30 },
+        filters             = {
           git_ignored = false,
           dotfiles    = false,
         },
-        renderer = {
+        renderer            = {
           highlight_git          = true,
           highlight_opened_files = "all",
           root_folder_label      = false,
-          icons = {
+          icons                  = {
             show = { git = true, folder = true, file = true },
           },
         },

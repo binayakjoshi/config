@@ -106,11 +106,16 @@
             ], align: Right,
         )),
 
-        "elapsed": Pane(Property(
+        // Left of bottom row: 4/239  1:23:45
+        // "/" same color as the numbers (#83c092), total time dimmer (#859289)
+        "queue_info": Pane(Property(
             content: [
-                (kind: Property(Status(Elapsed)), style: (fg: "#859289")),
-                (kind: Text(" / "), style: (fg: "#414b50")),
-                (kind: Property(Status(Duration)), style: (fg: "#859289")),
+                (kind: Property(Song(Position)), style: (fg: "#83c092"),
+                 default: (kind: Text("-"), style: (fg: "#83c092"))),
+                (kind: Text("/"), style: (fg: "#83c092")),
+                (kind: Property(Status(QueueLength(thousands_separator: ""))), style: (fg: "#83c092")),
+                (kind: Text("  "), style: (fg: "#414b50")),
+                (kind: Property(Status(QueueTimeTotal())), style: (fg: "#859289")),
             ], align: Left,
         )),
 
@@ -124,22 +129,38 @@
             ], align: Center, scroll_speed: 2
         )),
 
+        // Right of bottom row: play/pause state + mode flags
         "flags": Pane(Property(
             content: [
+                (kind: Property(Status(StateV2(
+                    playing_label: "▶ ",
+                    paused_label: "⏸ ",
+                    stopped_label: "■ ",
+                ))), style: (fg: "#7fbbb3")),
+
                 (kind: Property(Status(RepeatV2(
-                    on_label: "󰑖 ",
-                    off_label: "󰑖 ",
-                ))), style: (fg: "#414b50")),
+                    on_label: " 󰑖 ",
+                    off_label: "",
+                ))), style: (fg: "#a7c080")),
+
                 (kind: Property(Status(RandomV2(
-                    on_label: "󰒝 ",
-                    off_label: "󰒝 ",
-                ))), style: (fg: "#414b50")),
+                    on_label: " 󰒝 ",
+                    off_label: "",
+                ))), style: (fg: "#a7c080")),
+
                 (kind: Property(Status(ConsumeV2(
-                    on_label: "󰮯 ",
-                    off_label: "󰮯 ",
-                    oneshot_label: "󰮯 ",
-                ))), style: (fg: "#414b50")),
-            ], align: Right,
+                    on_label: " 󰮯 ",
+                    oneshot_label: " 󰮱 ",
+                    off_label: "",
+                ))), style: (fg: "#a7c080")),
+
+                (kind: Property(Status(SingleV2(
+                    on_label: " 󰍹 ",
+                    oneshot_label: " 󰐃 ",
+                    off_label: "",
+                ))), style: (fg: "#a7c080")),
+            ],
+            align: Right,
         )),
 
         "top_row": Split(
@@ -154,9 +175,9 @@
         "bottom_row": Split(
             direction: Horizontal,
             panes: [
-                (size: "13",   pane: Component("elapsed")),
+                (size: "22",   pane: Component("queue_info")),
                 (size: "100%", pane: Component("artist_album")),
-                (size: "10",   pane: Component("flags")),
+                (size: "14",   pane: Component("flags")),
             ],
         ),
 

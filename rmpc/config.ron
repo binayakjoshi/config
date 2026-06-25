@@ -100,4 +100,10 @@ tabs: [
             pane: Pane(Search),
         ),
     ],
+keybinds: (
+    clear: false,
+    global: {
+        "c": ShowHelp,
+    },
+),
 )

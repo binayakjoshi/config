@@ -57,7 +57,9 @@ return {
         capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
       end
 
+      ------------------------------------------------------------------
       -- TypeScript / JavaScript
+      ------------------------------------------------------------------
 
       vim.lsp.config("ts_ls", {
         cmd = { "typescript-language-server", "--stdio" },
@@ -94,7 +96,9 @@ return {
 
       vim.lsp.enable("ts_ls")
 
+      ------------------------------------------------------------------
       -- Python
+      ------------------------------------------------------------------
 
       vim.lsp.config("pyright", {
         cmd = { "pyright-langserver", "--stdio" },
@@ -124,7 +128,10 @@ return {
       })
 
       vim.lsp.enable("pyright")
+
+      ------------------------------------------------------------------
       -- Lua
+      ------------------------------------------------------------------
 
       vim.lsp.config("lua_ls", {
         on_attach = on_attach,
@@ -149,7 +156,9 @@ return {
 
       vim.lsp.enable("lua_ls")
 
+      ------------------------------------------------------------------
       -- LaTeX
+      ------------------------------------------------------------------
 
       vim.lsp.config("texlab", {
         on_attach = on_attach,

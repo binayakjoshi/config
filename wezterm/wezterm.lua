@@ -1,37 +1,151 @@
-local wezterm    = require 'wezterm'
-local act        = wezterm.action
+local wezterm                    = require 'wezterm'
+local act                        = wezterm.action
 
-local config     = wezterm.config_builder()
+local config                     = wezterm.config_builder()
 
 -- ── Font ──────────────────────────────────────────────────────────────────
-config.font      = wezterm.font("GoMono Nerd Font")
-config.font_size = 11.0
+config.font                      = wezterm.font("GoMono Nerd Font")
+config.font_size                 = 11.0
 
-
-config.warn_about_missing_glyphs     = false
+config.warn_about_missing_glyphs = false
 
 -- ── Theme ─────────────────────────────────────────────────────────────────
-config.color_scheme                  = "Everforest Dark Hard (Gogh)"
+config.color_scheme              = "Everforest Dark Hard (Gogh)"
+
+-- Everforest Dark Hard palette (used for tab bar / pane border styling below)
+local ef                         = {
+  bg0    = "#272e33",
+  bg1    = "#2e383c",
+  bg2    = "#374145",
+  bg3    = "#414b50",
+  bg_vis = "#4c3743",
+  fg     = "#d3c6aa",
+  red    = "#e67e80",
+  orange = "#e69875",
+  yellow = "#dbbc7f",
+  green  = "#a7c080",
+  aqua   = "#83c092",
+  blue   = "#7fbbb3",
+  purple = "#d699b6",
+  grey0  = "#7a8478",
+  grey1  = "#859289",
+  grey2  = "#9da9a0",
+}
+
+-- rgba() variants at the same opacity as window_background_opacity, so the
+-- tab bar / titlebar blend with the transparent window instead of showing
+local function rgba(hex, alpha)
+  local r, g, b = hex:match("#(%x%x)(%x%x)(%x%x)")
+  return string.format("rgba(%d, %d, %d, %s)", tonumber(r, 16), tonumber(g, 16), tonumber(b, 16), alpha)
+end
+
+-- ── Transparency ──────────────────────────────────────────────────────────
+config.window_background_opacity                  = 0.90
+config.text_background_opacity                    = 1.0
+-- macOS-only; ignored elsewhere. Gives frosted-glass blur behind the opacity.
+config.macos_window_background_blur               = 20
 
 -- ── Window ────────────────────────────────────────────────────────────────
-config.window_padding                = {
+config.window_padding                             = {
   left   = 8,
   right  = 8,
   top    = 8,
   bottom = 8,
 }
--- ── Transparency ─────────────────────────────────────────────────────────
-config.window_background_opacity     = 0.90
-config.window_decorations            = "NONE"
 
-config.initial_cols                  = 220
-config.initial_rows                  = 50
+config.window_decorations                         = "NONE"
+
+config.initial_cols                               = 220
+config.initial_rows                               = 50
 
 -- ── Tab bar ───────────────────────────────────────────────────────────────
-config.enable_tab_bar                = false
-config.use_fancy_tab_bar             = false
-config.tab_bar_at_bottom             = true -
-config.tab_max_width                 = 32
+config.enable_tab_bar                             = true
+config.use_fancy_tab_bar                          = true
+config.tab_bar_at_bottom                          = true
+config.tab_max_width                              = 32
+config.hide_tab_bar_if_only_one_tab               = false
+config.show_new_tab_button_in_tab_bar             = true
+config.show_tab_index_in_tab_bar                  = true
+config.switch_to_last_active_tab_when_closing_tab = true
+
+-- Fancy tab bar colors, tuned to Everforest Dark Hard
+config.window_frame                               = {
+  font                 = wezterm.font { family = "GoMono Nerd Font", weight = "Bold" },
+  font_size            = 10.5,
+  active_titlebar_bg   = rgba(ef.bg0, 0.90),
+  inactive_titlebar_bg = rgba(ef.bg0, 0.90),
+}
+
+config.colors                                     = {
+  tab_bar = {
+    background = rgba(ef.bg0, 0.90),
+
+    active_tab = {
+      bg_color  = rgba(ef.bg2, 0.95),
+      fg_color  = ef.green,
+      intensity = "Bold",
+      italic    = false,
+    },
+    inactive_tab = {
+      bg_color = rgba(ef.bg0, 0.90),
+      fg_color = ef.grey1,
+    },
+    inactive_tab_hover = {
+      bg_color = rgba(ef.bg1, 0.90),
+      fg_color = ef.fg,
+      italic   = false,
+    },
+    new_tab = {
+      bg_color = rgba(ef.bg0, 0.90),
+      fg_color = ef.grey1,
+    },
+    new_tab_hover = {
+      bg_color = rgba(ef.bg2, 0.95),
+      fg_color = ef.aqua,
+    },
+  },
+
+  -- Pane split-line / border color (visible now that wezterm owns splits)
+  split = ef.bg3,
+}
+
+-- Numbered, padded tab titles: " 1 nvim " style, active tab gets a green
+-- accent bar so it reads clearly against Everforest's muted palette.
+wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover)
+  local index = tab.tab_index + 1
+  local title = tab.active_pane.title
+  -- trim long titles
+  if #title > 20 then
+    title = title:sub(1, 17) .. "..."
+  end
+  local label = string.format(" %d  %s ", index, title)
+
+  if tab.is_active then
+    return {
+      { Background = { Color = rgba(ef.bg2, 0.95) } },
+      { Foreground = { Color = ef.green } },
+      { Text = label },
+    }
+  end
+  if hover then
+    return {
+      { Background = { Color = rgba(ef.bg1, 0.90) } },
+      { Foreground = { Color = ef.fg } },
+      { Text = label },
+    }
+  end
+  return {
+    { Background = { Color = rgba(ef.bg0, 0.90) } },
+    { Foreground = { Color = ef.grey1 } },
+    { Text = label },
+  }
+end)
+
+-- ── Pane borders/split visuals ────────────────────────────────────────────
+config.inactive_pane_hsb             = {
+  saturation = 0.85,
+  brightness = 0.6,
+}
 
 -- ── Scrollback ────────────────────────────────────────────────────────────
 config.scrollback_lines              = 8000
@@ -63,10 +177,8 @@ config.visual_bell                   = {
 }
 
 -- ── Mouse ─────────────────────────────────────────────────────────────────
--- Hide pointer while typing (less distraction in nvim)
 config.hide_mouse_cursor_when_typing = true
 
--- Right-click pastes (matches Konsole muscle memory)
 config.mouse_bindings                = {
   {
     event  = { Down = { streak = 1, button = "Right" } },
@@ -75,9 +187,12 @@ config.mouse_bindings                = {
   },
 }
 
--- ── Key bindings (tmux-first, minimal WezTerm keys) ──────────────────────
+-- ── Leader key (tmux-style, so the muscle memory transfers) ──────────────
+config.leader                        = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
+
+-- ── Key bindings ───────────────────────────────────────────────────────────
 config.keys                          = {
-  -- Clipboard (Ctrl+Shift+C/V, same as Konsole)
+  -- OS clipboard (Ctrl+Shift+C/V)
   { key = "c", mods = "CTRL|SHIFT", action = act.CopyTo "Clipboard" },
   { key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom "Clipboard" },
 
@@ -89,15 +204,146 @@ config.keys                          = {
   },
 
   -- Font size (Konsole-style shortcuts)
-  { key = "=", mods = "CTRL",       action = act.IncreaseFontSize },
-  { key = "-", mods = "CTRL",       action = act.DecreaseFontSize },
-  { key = "0", mods = "CTRL",       action = act.ResetFontSize },
+  { key = "=",  mods = "CTRL",         action = act.IncreaseFontSize },
+  { key = "-",  mods = "CTRL",         action = act.DecreaseFontSize },
+  { key = "0",  mods = "CTRL",         action = act.ResetFontSize },
 
-  -- Quick config reload (no restart needed)
-  { key = "r", mods = "CTRL|SHIFT", action = act.ReloadConfiguration },
+  -- Quick config reload
+  { key = "r",  mods = "CTRL|SHIFT",   action = act.ReloadConfiguration },
 
-  -- Suppress the debug overlay (pass Ctrl+Shift+L through to tmux/nvim)
-  { key = "l", mods = "CTRL|SHIFT", action = act.DisableDefaultAssignment },
+  -- Suppress debug overlay (pass through to nvim/shell)
+  { key = "l",  mods = "CTRL|SHIFT",   action = act.DisableDefaultAssignment },
+
+  ------------------------------------------------------------------------
+  -- Leader (Ctrl+a) driven bindings — standard tmux-equivalent set
+  ------------------------------------------------------------------------
+
+  -- Splits (tmux calls these "panes"; | and - match tmux's own bindings)
+  { key = "|",  mods = "LEADER|SHIFT", action = act.SplitHorizontal { domain = "CurrentPaneDomain" } },
+  { key = "\\", mods = "LEADER",       action = act.SplitHorizontal { domain = "CurrentPaneDomain" } },
+  { key = "-",  mods = "LEADER",       action = act.SplitVertical { domain = "CurrentPaneDomain" } },
+
+  -- Pane navigation (leader, then hjkl)
+  { key = "h",  mods = "LEADER",       action = act.ActivatePaneDirection "Left" },
+  { key = "j",  mods = "LEADER",       action = act.ActivatePaneDirection "Down" },
+  { key = "k",  mods = "LEADER",       action = act.ActivatePaneDirection "Up" },
+  { key = "l",  mods = "LEADER",       action = act.ActivatePaneDirection "Right" },
+
+  -- Pane resize (leader, then hjkl repeatedly — mirrors tmux's resize-pane -repeat)
+  {
+    key = "r",
+    mods = "LEADER",
+    action = act.ActivateKeyTable { name = "resize_pane", one_shot = false, timeout_milliseconds = 2000 },
+  },
+
+  -- Zoom / toggle pane fullscreen within the tab (tmux: prefix z)
+  { key = "z",   mods = "LEADER",       action = act.TogglePaneZoomState },
+
+  -- Close current pane (tmux: prefix x)
+  { key = "x",   mods = "LEADER",       action = act.CloseCurrentPane { confirm = true } },
+
+  -- Swap panes (tmux: prefix {  / } )
+  { key = "{",   mods = "LEADER|SHIFT", action = act.PaneSelect { mode = "SwapWithActiveKeepFocus" } },
+  { key = "o",   mods = "LEADER",       action = act.RotatePanes "Clockwise" },
+
+  -- Pane select overlay (tmux: prefix q shows pane numbers)
+  { key = "q",   mods = "LEADER",       action = act.PaneSelect { alphabet = "1234567890" } },
+
+  -- Tabs (tmux calls these "windows")
+  { key = "c",   mods = "LEADER",       action = act.SpawnTab "CurrentPaneDomain" }, -- new tab
+  { key = "x",   mods = "LEADER|SHIFT", action = act.CloseCurrentTab { confirm = true } },
+  { key = ",",   mods = "LEADER",       action = act.ActivateTabRelative(-1) },      -- prev tab
+  { key = ".",   mods = "LEADER",       action = act.ActivateTabRelative(1) },       -- next tab
+  { key = "n",   mods = "LEADER",       action = act.ActivateTabRelative(1) },
+  { key = "p",   mods = "LEADER",       action = act.ActivateTabRelative(-1) },
+  { key = "Tab", mods = "CTRL",         action = act.ActivateTabRelative(1) },
+  { key = "Tab", mods = "CTRL|SHIFT",   action = act.ActivateTabRelative(-1) },
+
+  -- Jump to tab by number (leader + 1..9), tmux-style
+  { key = "1",   mods = "LEADER",       action = act.ActivateTab(0) },
+  { key = "2",   mods = "LEADER",       action = act.ActivateTab(1) },
+  { key = "3",   mods = "LEADER",       action = act.ActivateTab(2) },
+  { key = "4",   mods = "LEADER",       action = act.ActivateTab(3) },
+  { key = "5",   mods = "LEADER",       action = act.ActivateTab(4) },
+  { key = "6",   mods = "LEADER",       action = act.ActivateTab(5) },
+  { key = "7",   mods = "LEADER",       action = act.ActivateTab(6) },
+  { key = "8",   mods = "LEADER",       action = act.ActivateTab(7) },
+  { key = "9",   mods = "LEADER",       action = act.ActivateTab(-1) }, -- last tab
+
+  -- Rename current tab (tmux: prefix ,)
+  {
+    key = "e",
+    mods = "LEADER",
+    action = act.PromptInputLine {
+      description = "Rename tab:",
+      action = wezterm.action_callback(function(win, pane, line)
+        if line then
+          win:active_tab():set_title(line)
+        end
+      end),
+    },
+  },
+
+  -- Move tab left/right
+  { key = "<",        mods = "LEADER|SHIFT", action = act.MoveTabRelative(-1) },
+  { key = ">",        mods = "LEADER|SHIFT", action = act.MoveTabRelative(1) },
+
+  -- Copy mode / scrollback / search (tmux: prefix [ , prefix PgUp)
+  { key = "[",        mods = "LEADER",       action = act.ActivateCopyMode },
+  { key = "f",        mods = "LEADER",       action = act.Search { CaseSensitiveString = "" } },
+  { key = "PageUp",   mods = "NONE",         action = act.ScrollByPage(-1) },
+  { key = "PageDown", mods = "NONE",         action = act.ScrollByPage(1) },
+
+  -- Quick select (URLs, paths, hashes — hint-driven, no mouse)
+  { key = " ",        mods = "LEADER",       action = act.QuickSelect },
+
+  -- Launcher (fuzzy pick tabs/panes/domains — tmux: prefix s session picker equivalent)
+  { key = "s",        mods = "LEADER",       action = act.ShowLauncherArgs { flags = "FUZZY|TABS|DOMAINS" } },
+
+  -- Paste (tmux: prefix ])
+  { key = "]",        mods = "LEADER",       action = act.PasteFrom "Clipboard" },
+}
+
+-- Resize-pane key table, entered via leader+r, stays active for repeats
+config.key_tables                    = {
+  resize_pane = {
+    { key = "h",      action = act.AdjustPaneSize { "Left", 3 } },
+    { key = "j",      action = act.AdjustPaneSize { "Down", 3 } },
+    { key = "k",      action = act.AdjustPaneSize { "Up", 3 } },
+    { key = "l",      action = act.AdjustPaneSize { "Right", 3 } },
+    { key = "Escape", action = "PopKeyTable" },
+    { key = "q",      action = "PopKeyTable" },
+    { key = "Enter",  action = "PopKeyTable" },
+  },
+
+  -- WezTerm's built-in copy_mode table already gives you vi-style movement
+  -- and visual selection/yank — this override just documents/tweaks it.
+  -- Defaults you already have without any config: hjkl to move, 'v' to
+  copy_mode = {
+    { key = "Escape", mods = "NONE",  action = act.CopyMode "Close" },
+    { key = "q",      mods = "NONE",  action = act.CopyMode "Close" },
+    { key = "h",      mods = "NONE",  action = act.CopyMode "MoveLeft" },
+    { key = "j",      mods = "NONE",  action = act.CopyMode "MoveDown" },
+    { key = "k",      mods = "NONE",  action = act.CopyMode "MoveUp" },
+    { key = "l",      mods = "NONE",  action = act.CopyMode "MoveRight" },
+    { key = "0",      mods = "NONE",  action = act.CopyMode "MoveToStartOfLine" },
+    { key = "$",      mods = "SHIFT", action = act.CopyMode "MoveToEndOfLineContent" },
+    { key = "w",      mods = "NONE",  action = act.CopyMode "MoveForwardWord" },
+    { key = "b",      mods = "NONE",  action = act.CopyMode "MoveBackwardWord" },
+    { key = "g",      mods = "NONE",  action = act.CopyMode "MoveToScrollbackTop" },
+    { key = "G",      mods = "SHIFT", action = act.CopyMode "MoveToScrollbackBottom" },
+    { key = "v",      mods = "NONE",  action = act.CopyMode { SetSelectionMode = "Cell" } },
+    { key = "V",      mods = "SHIFT", action = act.CopyMode { SetSelectionMode = "Line" } },
+    { key = "v",      mods = "CTRL",  action = act.CopyMode { SetSelectionMode = "Block" } },
+    {
+      key = "y",
+      mods = "NONE",
+      action = act.Multiple {
+        { CopyTo = "ClipboardAndPrimarySelection" },
+        { CopyMode = "Close" },
+      }
+    },
+  },
 }
 
 return config

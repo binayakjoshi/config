@@ -31,7 +31,9 @@ end, { desc = "Split Below & Pick File" })
 map("n", "<leader>=", "<C-w>=", { desc = "Equalize Split Sizes" })
 
 -- Cycle through windows
-vim.api.nvim_set_keymap("n", "<leader><Tab>", "<C-w>w", { noremap = true, silent = true })
+map("n", "<leader><Tab>", "<C-w>w", {
+  desc = "Next Window",
+})
 
 -- Visual mode: delete without yanking
 map("v", "d", '"_d', { noremap = true, silent = true, desc = "Delete without yank" })
@@ -52,8 +54,17 @@ map("n", "<leader>-", "zM", { desc = "Close All Folds" })
 
 -- Buffer delete
 map("n", "<leader>x", function()
-  require("bufdelete").bufdelete(0, true)
-end, { desc = "Safe Buffer Delete" })
+  local bufdelete = require("bufdelete")
+  local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+
+  if #bufs > 1 then
+    -- Delete buffer, keep window layout
+    bufdelete.bufdelete(0, true)
+  else
+    -- Last buffer: close the window instead of [No Name]
+    vim.cmd("quit")
+  end
+end, { desc = "Delete buffer / close last window" })
 
 vim.keymap.set("n", "<S-l>", "<cmd>bnext<CR>")
 vim.keymap.set("n", "<S-h>", "<cmd>bprevious<CR>")
@@ -69,7 +80,6 @@ vim.keymap.set("n", "<leader>fr", function()
   require("grug-far").open()
 end, { desc = "Search and replace (grug-far)" })
 
-
 --latex
 vim.keymap.set("n", "<leader>ll", "<cmd>VimtexCompile<CR>", { desc = "LaTeX Compile" })
 
@@ -78,3 +88,6 @@ vim.keymap.set("n", "<leader>lv", "<cmd>VimtexView<CR>", { desc = "LaTeX View PD
 vim.keymap.set("n", "<leader>lt", "<cmd>VimtexTocToggle<CR>", { desc = "LaTeX TOC" })
 
 vim.keymap.set("n", "<leader>lc", "<cmd>VimtexClean<CR>", { desc = "LaTeX Clean" })
+
+vim.keymap.set("n", "<leader>fp", "<cmd>NeovimProjectDiscover<cr>", { desc = "Find Project" })
+vim.keymap.set("n", "<leader>fh", "<cmd>NeovimProjectHistory<cr>", { desc = "Recent Projects" })

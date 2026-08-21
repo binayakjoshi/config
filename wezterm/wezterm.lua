@@ -33,7 +33,8 @@ local ef                         = {
 }
 
 -- rgba() variants at the same opacity as window_background_opacity, so the
--- tab bar / titlebar blend with the transparent window instead of showing
+-- tab bar blends with the transparent window instead of showing as a
+-- separate opaque block
 local function rgba(hex, alpha)
   local r, g, b = hex:match("#(%x%x)(%x%x)(%x%x)")
   return string.format("rgba(%d, %d, %d, %s)", tonumber(r, 16), tonumber(g, 16), tonumber(b, 16), alpha)
@@ -68,12 +69,16 @@ config.show_new_tab_button_in_tab_bar             = true
 config.show_tab_index_in_tab_bar                  = true
 config.switch_to_last_active_tab_when_closing_tab = true
 
--- Fancy tab bar colors, tuned to Everforest Dark Hard
+-- Fancy tab bar / titlebar styling, tuned to Everforest Dark Hard.
+-- NOTE: when the tab bar is at the TOP, WezTerm renders it as an integrated
+-- titlebar, which composites window_frame colors on top of the window's own
+-- opacity a second time. Using rgba() here (as the bottom tab bar does)
+-- washes it out, so plain opaque hex is used instead.
 config.window_frame                               = {
   font                 = wezterm.font { family = "GoMono Nerd Font", weight = "Bold" },
   font_size            = 10.5,
-  active_titlebar_bg   = rgba(ef.bg0, 0.90),
-  inactive_titlebar_bg = rgba(ef.bg0, 0.90),
+  active_titlebar_bg   = ef.bg0,
+  inactive_titlebar_bg = ef.bg0,
 }
 
 config.colors                                     = {
@@ -187,10 +192,13 @@ config.mouse_bindings                = {
   },
 }
 
--- ── Leader key (tmux-style, so the muscle memory transfers) ──────────────
-config.leader                        = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
-
 -- ── Key bindings ───────────────────────────────────────────────────────────
+-- No leader key, no tmux-style prefix table. Splits, tabs, closing panes,
+-- zoom, tab switching, etc. all use WezTerm's own built-in defaults
+-- (CTRL+SHIFT+"/%,  CTRL+SHIFT+W, CTRL+SHIFT+Z, CTRL+TAB, CTRL+SHIFT+1..9,
+-- CTRL+SHIFT+Space for QuickSelect, CTRL+SHIFT+X for copy mode, etc).
+-- The only custom bindings kept are the ones WezTerm doesn't provide
+-- out of the box, plus vim-style hjkl for pane navigation/resizing.
 config.keys                          = {
   -- OS clipboard (Ctrl+Shift+C/V)
   { key = "c", mods = "CTRL|SHIFT", action = act.CopyTo "Clipboard" },
@@ -204,121 +212,37 @@ config.keys                          = {
   },
 
   -- Font size (Konsole-style shortcuts)
-  { key = "=",  mods = "CTRL",         action = act.IncreaseFontSize },
-  { key = "-",  mods = "CTRL",         action = act.DecreaseFontSize },
-  { key = "0",  mods = "CTRL",         action = act.ResetFontSize },
+  { key = "=", mods = "CTRL",       action = act.IncreaseFontSize },
+  { key = "-", mods = "CTRL",       action = act.DecreaseFontSize },
+  { key = "0", mods = "CTRL",       action = act.ResetFontSize },
 
   -- Quick config reload
-  { key = "r",  mods = "CTRL|SHIFT",   action = act.ReloadConfiguration },
+  { key = "r", mods = "CTRL|SHIFT", action = act.ReloadConfiguration },
 
   -- Suppress debug overlay (pass through to nvim/shell)
-  { key = "l",  mods = "CTRL|SHIFT",   action = act.DisableDefaultAssignment },
+  { key = "l", mods = "CTRL|SHIFT", action = act.DisableDefaultAssignment },
 
   ------------------------------------------------------------------------
-  -- Leader (Ctrl+a) driven bindings — standard tmux-equivalent set
+  -- Vim-style pane navigation (no leader, just ALT+hjkl)
   ------------------------------------------------------------------------
+  { key = "h", mods = "ALT",        action = act.ActivatePaneDirection "Left" },
+  { key = "j", mods = "ALT",        action = act.ActivatePaneDirection "Down" },
+  { key = "k", mods = "ALT",        action = act.ActivatePaneDirection "Up" },
+  { key = "l", mods = "ALT",        action = act.ActivatePaneDirection "Right" },
 
-  -- Splits (tmux calls these "panes"; | and - match tmux's own bindings)
-  { key = "|",  mods = "LEADER|SHIFT", action = act.SplitHorizontal { domain = "CurrentPaneDomain" } },
-  { key = "\\", mods = "LEADER",       action = act.SplitHorizontal { domain = "CurrentPaneDomain" } },
-  { key = "-",  mods = "LEADER",       action = act.SplitVertical { domain = "CurrentPaneDomain" } },
+  -- Vim-style pane resizing (ALT+SHIFT+hjkl, single press per nudge)
+  { key = "h", mods = "ALT|SHIFT",  action = act.AdjustPaneSize { "Left", 3 } },
+  { key = "j", mods = "ALT|SHIFT",  action = act.AdjustPaneSize { "Down", 3 } },
+  { key = "k", mods = "ALT|SHIFT",  action = act.AdjustPaneSize { "Up", 3 } },
+  { key = "l", mods = "ALT|SHIFT",  action = act.AdjustPaneSize { "Right", 3 } },
 
-  -- Pane navigation (leader, then hjkl)
-  { key = "h",  mods = "LEADER",       action = act.ActivatePaneDirection "Left" },
-  { key = "j",  mods = "LEADER",       action = act.ActivatePaneDirection "Down" },
-  { key = "k",  mods = "LEADER",       action = act.ActivatePaneDirection "Up" },
-  { key = "l",  mods = "LEADER",       action = act.ActivatePaneDirection "Right" },
-
-  -- Pane resize (leader, then hjkl repeatedly — mirrors tmux's resize-pane -repeat)
-  {
-    key = "r",
-    mods = "LEADER",
-    action = act.ActivateKeyTable { name = "resize_pane", one_shot = false, timeout_milliseconds = 2000 },
-  },
-
-  -- Zoom / toggle pane fullscreen within the tab (tmux: prefix z)
-  { key = "z",   mods = "LEADER",       action = act.TogglePaneZoomState },
-
-  -- Close current pane (tmux: prefix x)
-  { key = "x",   mods = "LEADER",       action = act.CloseCurrentPane { confirm = true } },
-
-  -- Swap panes (tmux: prefix {  / } )
-  { key = "{",   mods = "LEADER|SHIFT", action = act.PaneSelect { mode = "SwapWithActiveKeepFocus" } },
-  { key = "o",   mods = "LEADER",       action = act.RotatePanes "Clockwise" },
-
-  -- Pane select overlay (tmux: prefix q shows pane numbers)
-  { key = "q",   mods = "LEADER",       action = act.PaneSelect { alphabet = "1234567890" } },
-
-  -- Tabs (tmux calls these "windows")
-  { key = "c",   mods = "LEADER",       action = act.SpawnTab "CurrentPaneDomain" }, -- new tab
-  { key = "x",   mods = "LEADER|SHIFT", action = act.CloseCurrentTab { confirm = true } },
-  { key = ",",   mods = "LEADER",       action = act.ActivateTabRelative(-1) },      -- prev tab
-  { key = ".",   mods = "LEADER",       action = act.ActivateTabRelative(1) },       -- next tab
-  { key = "n",   mods = "LEADER",       action = act.ActivateTabRelative(1) },
-  { key = "p",   mods = "LEADER",       action = act.ActivateTabRelative(-1) },
-  { key = "Tab", mods = "CTRL",         action = act.ActivateTabRelative(1) },
-  { key = "Tab", mods = "CTRL|SHIFT",   action = act.ActivateTabRelative(-1) },
-
-  -- Jump to tab by number (leader + 1..9), tmux-style
-  { key = "1",   mods = "LEADER",       action = act.ActivateTab(0) },
-  { key = "2",   mods = "LEADER",       action = act.ActivateTab(1) },
-  { key = "3",   mods = "LEADER",       action = act.ActivateTab(2) },
-  { key = "4",   mods = "LEADER",       action = act.ActivateTab(3) },
-  { key = "5",   mods = "LEADER",       action = act.ActivateTab(4) },
-  { key = "6",   mods = "LEADER",       action = act.ActivateTab(5) },
-  { key = "7",   mods = "LEADER",       action = act.ActivateTab(6) },
-  { key = "8",   mods = "LEADER",       action = act.ActivateTab(7) },
-  { key = "9",   mods = "LEADER",       action = act.ActivateTab(-1) }, -- last tab
-
-  -- Rename current tab (tmux: prefix ,)
-  {
-    key = "e",
-    mods = "LEADER",
-    action = act.PromptInputLine {
-      description = "Rename tab:",
-      action = wezterm.action_callback(function(win, pane, line)
-        if line then
-          win:active_tab():set_title(line)
-        end
-      end),
-    },
-  },
-
-  -- Move tab left/right
-  { key = "<",        mods = "LEADER|SHIFT", action = act.MoveTabRelative(-1) },
-  { key = ">",        mods = "LEADER|SHIFT", action = act.MoveTabRelative(1) },
-
-  -- Copy mode / scrollback / search (tmux: prefix [ , prefix PgUp)
-  { key = "[",        mods = "LEADER",       action = act.ActivateCopyMode },
-  { key = "f",        mods = "LEADER",       action = act.Search { CaseSensitiveString = "" } },
-  { key = "PageUp",   mods = "NONE",         action = act.ScrollByPage(-1) },
-  { key = "PageDown", mods = "NONE",         action = act.ScrollByPage(1) },
-
-  -- Quick select (URLs, paths, hashes — hint-driven, no mouse)
-  { key = " ",        mods = "LEADER",       action = act.QuickSelect },
-
-  -- Launcher (fuzzy pick tabs/panes/domains — tmux: prefix s session picker equivalent)
-  { key = "s",        mods = "LEADER",       action = act.ShowLauncherArgs { flags = "FUZZY|TABS|DOMAINS" } },
-
-  -- Paste (tmux: prefix ])
-  { key = "]",        mods = "LEADER",       action = act.PasteFrom "Clipboard" },
+  -- Copy mode (vi-style movement/selection, see key_tables.copy_mode below)
+  { key = "x", mods = "CTRL|SHIFT", action = act.ActivateCopyMode },
 }
 
--- Resize-pane key table, entered via leader+r, stays active for repeats
+-- WezTerm's built-in copy_mode table already gives you vi-style movement
+-- and visual selection/yank — this override just tweaks it slightly.
 config.key_tables                    = {
-  resize_pane = {
-    { key = "h",      action = act.AdjustPaneSize { "Left", 3 } },
-    { key = "j",      action = act.AdjustPaneSize { "Down", 3 } },
-    { key = "k",      action = act.AdjustPaneSize { "Up", 3 } },
-    { key = "l",      action = act.AdjustPaneSize { "Right", 3 } },
-    { key = "Escape", action = "PopKeyTable" },
-    { key = "q",      action = "PopKeyTable" },
-    { key = "Enter",  action = "PopKeyTable" },
-  },
-
-  -- WezTerm's built-in copy_mode table already gives you vi-style movement
-  -- and visual selection/yank — this override just documents/tweaks it.
-  -- Defaults you already have without any config: hjkl to move, 'v' to
   copy_mode = {
     { key = "Escape", mods = "NONE",  action = act.CopyMode "Close" },
     { key = "q",      mods = "NONE",  action = act.CopyMode "Close" },
@@ -336,8 +260,8 @@ config.key_tables                    = {
     { key = "V",      mods = "SHIFT", action = act.CopyMode { SetSelectionMode = "Line" } },
     { key = "v",      mods = "CTRL",  action = act.CopyMode { SetSelectionMode = "Block" } },
     {
-      key = "y",
-      mods = "NONE",
+      key    = "y",
+      mods   = "NONE",
       action = act.Multiple {
         { CopyTo = "ClipboardAndPrimarySelection" },
         { CopyMode = "Close" },

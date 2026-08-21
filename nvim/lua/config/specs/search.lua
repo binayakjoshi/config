@@ -3,9 +3,9 @@ return {
     "MagicDuck/grug-far.nvim",
     config = function()
       require("grug-far").setup({
-        windowCreationCommand = "botright vnew", -- vertical split instead of full
+        windowCreationCommand = "botright vnew",
         window = {
-          width = 0.25,                          -- 40% of screen
+          width = 0.20,
         },
       })
     end,

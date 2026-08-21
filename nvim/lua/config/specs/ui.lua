@@ -41,17 +41,10 @@ return {
     priority = 1000, -- Load first so colorscheme is set before other UI plugins
     config = function()
       vim.g.everforest_background = "hard"
+      vim.g.everforest_transparent_background = 1
       vim.cmd("colorscheme everforest")
     end,
   },
-  {
-    "sainnhe/gruvbox-material",
-    lazy = true, -- Only load if you switch to it manually
-    init = function()
-      vim.g.gruvbox_material_enable_italic = 1
-    end,
-  },
-
   -- Status line
   {
     "nvim-lualine/lualine.nvim",
@@ -81,9 +74,9 @@ return {
             {
               -- Custom diagnostics: show error/warn counts with line numbers
               function()
-                local diags                   = vim.diagnostic.get(0)
-                local counts                  = { E = 0, W = 0, H = 0 }
-                local first_error, first_warn = nil, nil
+                local diags = vim.diagnostic.get(0)
+                local counts = { E = 0, W = 0, H = 0 }
+                local first_error, first_warn, first_hint = nil, nil, nil
 
                 for _, d in ipairs(diags) do
                   if d.severity == vim.diagnostic.severity.ERROR then
@@ -94,6 +87,7 @@ return {
                     if not first_warn then first_warn = d.lnum + 1 end
                   elseif d.severity == vim.diagnostic.severity.HINT then
                     counts.H = counts.H + 1
+                    if not first_hint then first_hint = d.lnum + 1 end
                   end
                 end
 
@@ -107,7 +101,8 @@ return {
                     "%#DiagnosticWarn# W:" .. counts.W .. (first_warn and "(L" .. first_warn .. ")" or "") .. "%*")
                 end
                 if counts.H > 0 then
-                  table.insert(out, "%#DiagnosticHint# H:" .. counts.H .. "%*")
+                  table.insert(out,
+                    "%#DiagnosticHint# H:" .. counts.H .. (first_hint and "(L" .. first_hint .. ")" or "") .. "%*")
                 end
 
                 return table.concat(out, "  ")

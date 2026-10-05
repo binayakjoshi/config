@@ -13,8 +13,9 @@ return {
   config = function()
     require("neovim-project").setup({
       projects = {
-        "/run/media/binayak/kiki/code/*",
         "/run/media/binayak/kiki/Work/pos/*",
+        "/run/media/binayak/kiki/code/projects/*", -- first level
+        "/run/media/binayak/kiki/code/projects/*/*",
         "~/.config/*",
       },
       picker = {

@@ -12,17 +12,28 @@ return {
     },
     opts = {
       options = {
-        separator_style         = "slant",
+        mode                    = "buffers",
+        separator_style         = "thin", -- subtle separators instead of none
         tab_size                = 18,
         max_name_length         = 20,
+        truncate_names          = true,
+        enforce_regular_tabs    = true, -- uniform tab width, cleaner grid
         diagnostics             = "nvim_lsp",
         diagnostics_indicator   = function(count, level)
           local icons = { error = " ", warning = " " }
           return (icons[level] or "") .. count
         end,
+        indicator               = {
+          icon  = "▎",
+          style = "icon", -- try "underline" if you prefer a flatter look
+        },
+        modified_icon           = "●",
         show_close_icon         = false,
         show_buffer_close_icons = false,
+        show_buffer_icons       = true, -- filetype icons on each tab
+        color_icons             = true, -- colored devicons instead of monochrome
         always_show_bufferline  = true,
+        show_duplicate_prefix   = true,
         offsets                 = {
           {
             filetype   = "NvimTree",

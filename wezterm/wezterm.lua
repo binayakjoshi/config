@@ -41,7 +41,7 @@ local function rgba(hex, alpha)
 end
 
 -- ── Transparency ──────────────────────────────────────────────────────────
-config.window_background_opacity                  = 0.90
+config.window_background_opacity                  = 0.92
 config.text_background_opacity                    = 1.0
 -- macOS-only; ignored elsewhere. Gives frosted-glass blur behind the opacity.
 config.macos_window_background_blur               = 20
@@ -170,7 +170,6 @@ config.term                          = "wezterm"
 
 -- ── Keyboard encoding ─────────────────────────────────────────────────────
 config.enable_kitty_keyboard         = true
-
 -- ── Clipboard & encoding ──────────────────────────────────────────────────
 config.canonicalize_pasted_newlines  = "LineFeed"
 
@@ -211,6 +210,8 @@ config.keys                          = {
     action = act.SpawnCommandInNewWindow { cwd = wezterm.home_dir },
   },
 
+  -- Pane zoom / unzoom
+  { key = "z", mods = "ALT",        action = act.TogglePaneZoomState },
   -- Font size (Konsole-style shortcuts)
   { key = "=", mods = "CTRL",       action = act.IncreaseFontSize },
   { key = "-", mods = "CTRL",       action = act.DecreaseFontSize },

@@ -40,14 +40,6 @@ map("v", "d", '"_d', { noremap = true, silent = true, desc = "Delete without yan
 map("v", "x", "d", { noremap = true, silent = true, desc = "Yank + delete" })
 
 -- Folding
-map("n", "za", "za", { desc = "Toggle Fold" })
-map("n", "<leader>z", function()
-  if vim.wo.foldmethod ~= "expr" then
-    vim.wo.foldmethod = "expr"
-    vim.wo.foldexpr   = "v:lua.vim.treesitter.foldexpr()"
-  end
-  pcall(function() vim.cmd("normal! za") end)
-end, { desc = "Toggle Fold" })
 
 map("n", "<leader>+", "zR", { desc = "Open All Folds" })
 map("n", "<leader>-", "zM", { desc = "Close All Folds" })
@@ -71,23 +63,18 @@ vim.keymap.set("n", "<S-h>", "<cmd>bprevious<CR>")
 -- NvimTree
 map("n", "<leader>e", ":NvimTreeToggle<CR>")
 map("n", "<leader>f", ":NvimTreeFocus<CR>", { desc = "Focus NvimTree" })
-
 -- Telescope
 map("n", "<leader>ff", ":Telescope find_files<CR>")
 
 
 vim.keymap.set("n", "<leader>fr", function()
-  require("grug-far").open()
+  require("grug-far").open({ prefills = { search = vim.fn.expand("<cword>") } })
 end, { desc = "Search and replace (grug-far)" })
 
 --latex
 vim.keymap.set("n", "<leader>ll", "<cmd>VimtexCompile<CR>", { desc = "LaTeX Compile" })
-
 vim.keymap.set("n", "<leader>lv", "<cmd>VimtexView<CR>", { desc = "LaTeX View PDF" })
-
 vim.keymap.set("n", "<leader>lt", "<cmd>VimtexTocToggle<CR>", { desc = "LaTeX TOC" })
-
 vim.keymap.set("n", "<leader>lc", "<cmd>VimtexClean<CR>", { desc = "LaTeX Clean" })
-
 vim.keymap.set("n", "<leader>fp", "<cmd>NeovimProjectDiscover<cr>", { desc = "Find Project" })
 vim.keymap.set("n", "<leader>fh", "<cmd>NeovimProjectHistory<cr>", { desc = "Recent Projects" })

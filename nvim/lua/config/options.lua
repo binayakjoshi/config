@@ -6,7 +6,7 @@ vim.g.maplocalleader           = " "
 -- Colorscheme globals (must be set before plugin loads colorscheme)
 vim.g.everforest_background    = "hard"
 vim.g.everforest_enable_italic = 1
-
+vim.o.cmdheight                = 0
 local o                        = vim.opt
 
 o.number                       = true

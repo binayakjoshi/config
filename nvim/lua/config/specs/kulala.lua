@@ -1,6 +1,10 @@
 return {
-  "mistweaverco/kulala.nvim",
+  "dont-be-evil-company/kulala.nvim",
+  version = "5.3.4",
+  submodules = false,
+
   ft = { "http", "rest" },
+
   keys = {
     { "<leader>kr", function() require("kulala").run() end,         desc = "Kulala: Send request" },
     { "<leader>ka", function() require("kulala").run_all() end,     desc = "Kulala: Send all requests" },
@@ -11,8 +15,9 @@ return {
     { "<leader>ki", function() require("kulala").inspect() end,     desc = "Kulala: Inspect request" },
     { "<leader>ke", function() require("kulala").set_env() end,     desc = "Kulala: Set environment" },
   },
+
   opts = {
-    global_keymaps = false, -- we define our own above, so kulala's built-ins are disabled
+    global_keymaps = false,
     default_view = "body",
     winbar = true,
     additional_curl_options = {},

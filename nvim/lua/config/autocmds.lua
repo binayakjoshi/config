@@ -13,6 +13,8 @@ vim.api.nvim_create_autocmd({ "FileType", "BufReadPost", "BufNewFile" }, {
   end,
 })
 
+-- lua/config/autocmds.lua – Autocommands and user commands
+
 -- Stop orphaned LSP clients (0 attached buffers) after switching projects
 vim.api.nvim_create_autocmd("DirChanged", {
   desc = "Stop orphaned LSP clients on project switch",
@@ -23,7 +25,7 @@ vim.api.nvim_create_autocmd("DirChanged", {
           client.stop()
         end
       end
-    end, 200) -- small delay so buffer detachment finishes first
+    end, 200)
   end,
 })
 

@@ -11,7 +11,7 @@
     max_fps: 30,
     scrolloff: 0,
     wrap_navigation: false,
-    lyrics_dir: "/home/binayak/Music",
+    lyrics_dir: "/run/media/binayak/kiki/music",
     enable_lyrics_index: true,
     enable_lyrics_hot_reload: true,
     enable_mouse: true,
@@ -79,6 +79,24 @@ tabs: [
                 ],
             ),
         ),
+(
+    name: "Lyrics",
+    pane: Split(
+        direction: Horizontal,
+        panes: [
+            // Left: synchronized lyrics
+            (
+                size: "58%",
+                pane: Pane(Lyrics),
+            ),
+            // Right: album artwork
+            (
+                size: "42%",
+                pane: Pane(AlbumArt),
+            ),
+        ],
+    ),
+),
         (
             name: "Directories",
             pane: Pane(Directories),
@@ -104,6 +122,9 @@ keybinds: (
     clear: false,
     global: {
         "c": ShowHelp,
+    },
+    navigation: {
+        "i": AddOptions(),
     },
 ),
 )
